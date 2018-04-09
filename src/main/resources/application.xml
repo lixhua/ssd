@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xmlns:tx="http://www.springframework.org/schema/tx"
+	   xmlns:task="http://www.springframework.org/schema/task"
+	   xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+							http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+							http://www.springframework.org/schema/context
+							http://www.springframework.org/schema/context/spring-context-4.3.xsd
+							http://www.springframework.org/schema/aop
+							http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+							http://www.springframework.org/schema/tx
+							http://www.springframework.org/schema/tx/spring-tx-4.3.xsd
+							http://www.springframework.org/schema/task
+							http://www.springframework.org/schema/task/spring-task-4.3.xsd http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+	
+	<context:component-scan base-package="com.rsy.ssd"></context:component-scan>
+	
+	<!-- 引入jdbc.properties文件
+		system-properties-mode="NEVER" 不获取系统中对应的属性值，而是单纯获取文件中
+	 -->
+	<context:property-placeholder location="classpath:jdbc.properties" system-properties-mode="NEVER"/>
+
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+		<property name="url" value="${url}"></property>
+		<property name="username" value="${username}"></property>
+		<property name="password" value="${password}"></property>
+		<property name="driverClassName" value="${driverClass}"></property>
+		<property name="initialSize" value="5"></property>
+		<!-- 最小的空闲数量 -->
+		<property name="minIdle" value="2"></property>
+		<property name="maxActive" value="8"></property>
+		<!-- 获取连接最大的等待时间，单位毫秒-->
+		<property name="maxWait" value="60000"></property>
+		
+		<!-- 检查连接是否有效, value 值根据数据库必须为有效的sql -->
+		<property name="validationQuery" value="select 1"></property>
+		<!-- 当连接不够的时候，申请链接先执行以上sql, 通常设置为false，为提高
+		性能，与validationQuery 配合使用-->
+		<property name="testOnBorrow" value="false"></property>
+		<!-- 归还连接的时候执行的，通常设置为false，为提高性能，与
+		validationQuery 配合使用-->
+		<property name="testOnReturn" value="false"></property>
+		<!-- 空闲的时候执行查询，通常设置为true,不影响性能，与validationQuery
+		配合使用-->
+		<property name="testWhileIdle" value="true"></property>
+		<!-- 空闲连接在连接池中最小的生存时间-->
+		<property name="minEvictableIdleTimeMillis" value="300000"></property>
+		<!-- 打开PSCache，并且指定每个连接上PSCache 的大小,注意：如果用Oracle，
+		则把poolPreparedStatements 配置为true，mysql 可以配置为false。-->
+		<property name="poolPreparedStatements" value="false"></property>
+		<property name="maxPoolPreparedStatementPerConnectionSize" value="20"></property>
+	</bean>
+
+	<!-- 创建EntityManagerFactory -->
+	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource" ref="dataSource"></property>
+		<!-- 指定jpa厂商，说白了就jpa是谁来实现的 -->
+		<property name="jpaVendorAdapter">
+		   <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"></bean>
+	    </property>
+		<!-- 扫描entity,如果多个就使用逗号 -->
+		<property name="packagesToScan" value="com.rsy.ssd.domain"></property>
+		<property name="jpaProperties">
+			<props>
+				<prop key="hibernate.ejb.naming_strategy">org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!-- 配置事务 -->
+	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="entityManagerFactory"></property>
+	</bean>
+
+	<!-- 开启事务 -->
+	<tx:annotation-driven transaction-manager="transactionManager"/>
+
+	<jpa:repositories base-package="com.rsy.ssd.repository" entity-manager-factory-ref="entityManagerFactory"></jpa:repositories>
+
+</beans>

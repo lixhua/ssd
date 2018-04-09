@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+        "http://struts.apache.org/dtds/struts-2.3.dtd">
+<struts>
+
+    <constant name="struts.enable.DynamicMethodInvocation" value="true"/>
+
+    <package name="struts-common" extends="json-default">
+        <global-results>
+            <result type="json">
+                <param name="noCache">true</param> <!-- 不缓存 -->
+                <param name="contentType">application/json</param>
+                <param name="root">datas</param>
+            </result>
+        </global-results>
+    </package>
+
+    <package name="struts" extends="struts-common">
+
+        <action name="*_*" class="com.rsy.ssd.action.{1}Action" method="{2}">
+            <result name="list">/WEB-INF/{1}/{2}.jsp</result>
+            <result type="redirectAction" name="delete">User_list?pager=${pager}</result>
+            <result type="redirect" name="edit">User_list</result>
+            <result type="redirectAction" name="add">User_list</result>
+        </action>
+
+    </package>
+</struts>
